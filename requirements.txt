@@ -1,0 +1,18 @@
+# ASR 引擎
+sherpa-onnx>=1.10.0
+
+# 音频采集
+sounddevice>=0.5.0
+numpy>=1.24.0
+
+# 系统托盘 — 由 PySide6 提供
+
+# 全局热键 (PTT)
+pynput>=1.7.6
+
+# 剪贴板 + 模拟粘贴
+pyperclip>=1.9.0
+pyautogui>=0.9.54
+
+# 设置窗口
+PySide6>=6.5.0

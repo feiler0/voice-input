@@ -1,0 +1,23 @@
+# Build artifacts
+dist/
+build/
+installer/
+*.spec~
+
+# Large local model files
+models/
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local logs and runtime state
+*.log
+*.tmp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
