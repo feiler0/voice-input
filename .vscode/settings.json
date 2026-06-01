@@ -1,0 +1,9 @@
+{
+    "python.defaultInterpreterPath": "python",
+    "python.terminal.activateEnvironment": false,
+    "files.associations": {
+        "*.py": "python"
+    },
+    "editor.formatOnSave": true,
+    "python.analysis.typeCheckingMode": "basic"
+}
