@@ -50,7 +50,7 @@ class SettingsWindow(QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint | Qt.CustomizeWindowHint | Qt.WindowCloseButtonHint)
         self.setModal(True)
         self.setMinimumWidth(440)
-        self.setFixedHeight(400)
+        self.setFixedHeight(440)
 
         layout = QVBoxLayout()
         layout.setSpacing(12)
@@ -112,6 +112,10 @@ class SettingsWindow(QDialog):
         self.auto_start_check.setChecked(self.config.get("auto_start", False))
         output_layout.addRow(self.auto_start_check)
 
+        self.punct_check = QCheckBox("自动添加标点符号（中英文）")
+        self.punct_check.setChecked(self.config.get("punctuation_enabled", True))
+        output_layout.addRow(self.punct_check)
+
         output_group.setLayout(output_layout)
         layout.addWidget(output_group)
 
@@ -164,6 +168,7 @@ class SettingsWindow(QDialog):
         self.config["hotkey"] = hotkey
         self.config["device"] = self.device_combo.currentData()
         self.config["auto_paste"] = self.auto_paste_check.isChecked()
+        self.config["punctuation_enabled"] = self.punct_check.isChecked()
 
         auto_start = self.auto_start_check.isChecked()
         self.config["auto_start"] = auto_start

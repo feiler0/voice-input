@@ -24,6 +24,12 @@ DEFAULT_CONFIG = {
     "auto_paste": True,          # 是否自动粘贴
     "model": "",
     "auto_start": False,
+    "audio_preprocess": True,
+    "save_audio_samples": False,
+    "sample_keep": 10,
+    "text_replacements": {},
+    "punctuation_enabled": True,  # 是否自动添加标点符号
+    "punctuation_model": "",      # 标点模型路径 (空 = 默认)
 }
 
 

@@ -122,6 +122,7 @@ class VoiceInputApp:
         self.signals = StatusSignals()
         self.recorder = None
         self.engine = None
+        self.punctuation = None
         self.tray = None
         self.indicator = None
         self.settings_window = None
@@ -190,8 +191,56 @@ class VoiceInputApp:
             self.set_status("idle")
             return
         self.set_status("transcribing")
-        text = self.engine.transcribe(result.audio, result.sample_rate)
+        audio = result.audio
+        quality = None
+        if self.config.get("audio_preprocess", True):
+            try:
+                from audio_quality import preprocess_audio
+                audio, quality = preprocess_audio(result.audio, result.sample_rate)
+                if quality.warnings:
+                    print(f"[app] Audio quality warnings: {', '.join(quality.warnings)}", flush=True)
+                print(
+                    "[app] Audio prepared: "
+                    f"{quality.duration_before:.2f}s -> {quality.duration_after:.2f}s, "
+                    f"rms {quality.rms_before:.4f} -> {quality.rms_after:.4f}",
+                    flush=True,
+                )
+            except Exception as e:
+                print(f"[app] Audio preprocessing skipped: {e}", flush=True)
+                audio = result.audio
+
+        text = self.engine.transcribe(audio, result.sample_rate)
         if text:
+            # 自动添加标点符号
+            if self.config.get("punctuation_enabled", True) and self.punctuation and self.punctuation.is_loaded:
+                try:
+                    text = self.punctuation.add_punctuation(text)
+                except Exception as e:
+                    print(f"[app] Punctuation failed: {e}", flush=True)
+
+            try:
+                from postprocess import apply_postprocess
+                text = apply_postprocess(
+                    text,
+                    replacements=self.config.get("text_replacements", {}),
+                )
+            except Exception as e:
+                print(f"[app] Text postprocess skipped: {e}", flush=True)
+
+            if self.config.get("save_audio_samples", False) and quality is not None:
+                try:
+                    from audio_quality import save_audio_sample
+                    path = save_audio_sample(
+                        audio,
+                        result.sample_rate,
+                        text,
+                        quality,
+                        keep=int(self.config.get("sample_keep", 10)),
+                    )
+                    print(f"[app] Saved audio sample: {path}", flush=True)
+                except Exception as e:
+                    print(f"[app] Audio sample save skipped: {e}", flush=True)
+
             print(f"[app] Transcribed: {text[:60]}", flush=True)
             from clipboard import copy_and_paste
             ok = copy_and_paste(text, auto_paste=self.config.get("auto_paste", True))
@@ -285,6 +334,8 @@ class VoiceInputApp:
             self._loading_anim_timer.stop()
         if self.engine:
             self.engine.unload()
+        if self.punctuation:
+            self.punctuation.unload()
         QApplication.quit()
 
     # ── 启动 ──
@@ -304,6 +355,14 @@ class VoiceInputApp:
             model_name=self.config.get("model", "small"),
             on_status_change=self._on_engine_status,
         )
+
+        # 标点模型（独立于 ASR 引擎）
+        self.punctuation = None
+        if self.config.get("punctuation_enabled", True):
+            from punctuation import PunctuationProcessor
+            self.punctuation = PunctuationProcessor(
+                model_name=self.config.get("punctuation_model", ""),
+            )
 
         # 所有 Qt 界面延迟到事件循环启动后创建
         def _init_ui():
@@ -327,6 +386,12 @@ class VoiceInputApp:
 
         def _load():
             self.engine.load()
+            # 标点模型延迟加载（不阻塞 ASR）
+            if self.punctuation:
+                try:
+                    self.punctuation.load()
+                except Exception as e:
+                    print(f"[app] Punctuation model load failed: {e}", flush=True)
 
         threading.Thread(target=_load, daemon=True).start()
 
