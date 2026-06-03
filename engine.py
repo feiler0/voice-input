@@ -163,9 +163,16 @@ class ASREngine:
 
             t0 = time.time()
             stream = self._recognizer.create_stream()
-            stream.accept_waveform(sample_rate, audio)
-            self._recognizer.decode_stream(stream)
-            text = stream.result.text.strip()
+            try:
+                stream.accept_waveform(sample_rate, audio)
+                self._recognizer.decode_stream(stream)
+                text = stream.result.text.strip()
+            finally:
+                # 显式释放 C++ 资源，避免依赖 Python GC
+                try:
+                    stream.destroy()
+                except Exception:
+                    pass
             elapsed = time.time() - t0
 
             if text:
