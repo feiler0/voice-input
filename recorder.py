@@ -78,8 +78,8 @@ class VoiceRecorder:
                 callback=callback,
             ) as stream:
                 self._stream = stream
-                # 等待 stop 信号
-                self._stop_event.wait()
+                # 等待 stop 信号（最多 60 秒，防止永久挂起）
+                self._stop_event.wait(timeout=60)
         finally:
             self._stream = None
 

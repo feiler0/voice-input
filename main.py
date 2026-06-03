@@ -70,8 +70,9 @@ class RecordingIndicator(QLabel):
         self.setWindowFlags(
             Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.Tool
         )
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setStyleSheet("background: transparent;")
         self.setFixedSize(16, 16)
         self._timer = QTimer(self)
@@ -142,6 +143,7 @@ class VoiceInputApp:
         if self.tray:
             m = {
                 "idle": icons["idle"], "ready": icons["idle"],
+                "loading_model": icons["transcribing"],
                 "recording": icons["recording"], "transcribing": icons["transcribing"],
                 "done": icons["idle"], "error": icons["error"],
             }
@@ -155,6 +157,12 @@ class VoiceInputApp:
         if status == "ready":
             if self.tray:
                 self.tray.setToolTip("Voice Input — 按住 PTT 键说话")
+                self.tray.showMessage(
+                    "Voice Input",
+                    "已就绪，按住 PTT 键开始说话",
+                    QSystemTrayIcon.MessageIcon.Information,
+                    2000,
+                )
             if self._pending_recording:
                 self._pending_recording = False
                 self.start_recording()
@@ -330,6 +338,10 @@ class VoiceInputApp:
             self.tray.setIcon(QIcon(pix))
 
     def _on_exit(self) -> None:
+        # 停止录音线程，等待最多 2 秒
+        self.stop_recording()
+        if self._record_thread and self._record_thread.is_alive():
+            self._record_thread.join(timeout=2.0)
         if self._loading_anim_timer:
             self._loading_anim_timer.stop()
         if self.engine:
@@ -405,6 +417,7 @@ if __name__ == "__main__":
     # 输出重定向到持久化日志文件（pythonw 模式下无控制台）
     from config import CONFIG_DIR
     log_path = CONFIG_DIR / "app.log"
+    log_file = None
     try:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         log_file = open(log_path, "w", encoding="utf-8")
@@ -433,5 +446,5 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
         print(f"[app] FATAL: {e}", flush=True)
-        traceback.print_exc(file=log_file if 'log_file' in dir() else sys.stderr)
+        traceback.print_exc(file=log_file if log_file else sys.stderr)
         raise

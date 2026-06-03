@@ -1,5 +1,3 @@
 @echo off
-chcp 65001 >nul
 cd /d "%~dp0"
-python -u main.py
-pause
+start "VoiceInput" pythonw -u main.py
