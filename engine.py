@@ -50,17 +50,23 @@ class ASREngine:
         model_name: str = "",
         on_status_change: Optional[Callable[[str], None]] = None,
         device: str = "cpu",
+        use_itn: bool = True,
+        language: str = "",
     ):
         """
         Args:
             model_name: 模型目录路径，为空则自动使用 models/ 下的默认模型
             on_status_change: 状态回调
             device: 运行设备 (cpu/cuda), 默认 cpu
+            use_itn: 是否开启逆向文本正则化 (数字/日期/百分比书面化), 默认 True
+            language: 语言代码，空字符串 = SenseVoice 自动检测 (zh/en/ja/ko/yue)
         """
         self.model_name = model_name
         self.on_status_change = on_status_change
         self._recognizer: Optional[sherpa_onnx.OfflineRecognizer] = None
         self._provider = "cpu" if device == "cpu" else "cuda"
+        self._use_itn = use_itn
+        self._language = language
 
     def _set_status(self, status: str) -> None:
         if self.on_status_change:
@@ -122,8 +128,8 @@ class ASREngine:
                 model=model_path,
                 tokens=tokens_path,
                 num_threads=4,
-                use_itn=False,
-                language="zh",
+                use_itn=self._use_itn,
+                language=self._language,
                 debug=False,
                 provider=self._provider,
             )
