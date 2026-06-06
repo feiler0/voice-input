@@ -30,6 +30,8 @@ DEFAULT_CONFIG = {
     "text_replacements": {},
     "punctuation_enabled": True,  # 是否自动添加标点符号
     "punctuation_model": "",      # 标点模型路径 (空 = 默认)
+    "asr_itn": True,              # ITN 逆向文本正则化（数字/日期书面化）
+    "asr_language": "",           # ASR 语言 (空 = SenseVoice 自动检测, 可设 zh/en/ja/ko/yue)
 }
 
 

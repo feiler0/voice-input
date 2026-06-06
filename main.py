@@ -366,6 +366,8 @@ class VoiceInputApp:
         self.engine = ASREngine(
             model_name=self.config.get("model", "small"),
             on_status_change=self._on_engine_status,
+            use_itn=self.config.get("asr_itn", True),
+            language=self.config.get("asr_language", ""),
         )
 
         # 标点模型（独立于 ASR 引擎）

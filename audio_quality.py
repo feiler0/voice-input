@@ -42,7 +42,7 @@ def _trim_silence(
     audio: np.ndarray,
     sample_rate: int,
     frame_ms: int = 20,
-    threshold_ratio: float = 0.18,
+    threshold_ratio: float = 0.12,
     padding_ms: int = 160,
 ) -> np.ndarray:
     if audio.size == 0:
@@ -75,7 +75,7 @@ def _trim_silence(
     return audio[start:end]
 
 
-def _normalize(audio: np.ndarray, target_rms: float = 0.075, max_gain: float = 8.0) -> np.ndarray:
+def _normalize(audio: np.ndarray, target_rms: float = 0.10, max_gain: float = 8.0) -> np.ndarray:
     if audio.size == 0:
         return audio
 
